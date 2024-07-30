@@ -1,0 +1,456 @@
+#include <iostream>
+#include "Polynom.h"
+#include "DList.h"
+using namespace std;
+
+void Task1()
+{
+cout << "Task1" << endl;
+Polynom list;
+list.Add(3, 3);
+list.Add(2, 2);
+list.Add(0, 0);
+list.Print();
+list.Write("test1.txt");
+list.Add(-1, 1);
+list.Print();
+cout << list.Integral(0, 1) << endl;
+list.BinWrite("test1");
+}
+
+void Task2()
+{
+cout << "Task2" << endl;
+DList list;
+list.PushBack(2);
+list.PushBack(2);
+list.PushBack(3);
+list.PushBack(3);
+cout << "bin write: ";
+list.Print();
+list.BinWrite("test2");
+list.PushBack(3);
+list.PushBack(2);
+list.PushBack(2);
+list.PushBack(1);
+cout << "norm write: ";
+list.Print();
+list.Write("test2.txt");
+cout << list.CountMin() << endl;
+}
+
+void Task3()
+{
+cout << "Task3" << endl;
+Polynom list1;
+list1.Read("test1.txt");
+list1.Print();
+list1.BinRead("test1");
+list1.Print();
+}
+void Task4()
+{
+cout << "Task4" << endl;
+DList list;
+list.BinRead("test2");
+cout << "bin read: ";
+list.Print();
+list.Read("test2.txt");
+cout << "norm read: ";
+list.Print();
+
+}
+int main()
+{
+Task1();
+Task2();
+Task3();
+Task4();
+return 0;
+}
+Polynom.h
+#pragma once
+#include <string>
+using namespace std;
+class PNode
+{
+double k;
+size_t p;
+PNode next, prev;
+public:
+PNode(double koef, size_t pow) : k(koef), p(pow), next(nullptr), prev(nullptr) { }
+void Print();
+PNode* Next() { return next; }
+PNode* Prev() { return prev; }
+double K() { return k; }
+size_t P() { return p; }
+void setNext(PNode* n) { next = n; }
+void setPrev(PNode* p) { prev = p; }
+void setK(double koef) { k = koef; }
+void setP(size_t po) { p = po; }
+};
+
+class Polynom
+{
+PNode begin, end;
+size_t size;
+public:
+Polynom() : begin(nullptr), end(nullptr), size(0) { }
+~Polynom() { DeleteAll(); }
+void DeleteAll();
+void Add(double k, size_t pow);
+void Print();
+void Delete(PNode* el);
+double Integral(double a, double b);
+bool Read(string fname);
+bool Write(string fname);
+bool BinRead(string fname);
+bool BinWrite(string fname);
+};
+
+
+Polynom.cpp
+#include "Polynom.h"
+#include <iostream>
+#include <fstream>
+using namespace std;
+void PNode::Print()
+{
+if (this == nullptr)
+return;
+if (k != 1)
+cout << k;
+if (p != 0)
+cout << "x^" << p;
+else if (k == 1)
+cout << k;
+}
+
+void Polynom::Delete(PNode* el)
+{
+size--;
+if (el->Prev() != nullptr)
+el->Prev()->setNext(el->Next());
+else
+begin = el->Next();
+if (el->Next() != nullptr)
+el->Next()->setPrev(el->Prev());
+else
+end = el->Prev();
+delete el;
+}
+
+void Polynom::DeleteAll()
+{
+while (begin != nullptr)
+Delete(begin);
+}
+
+void Polynom::Add(double k, size_t pow)
+{
+PNode* curr = begin;
+if (curr == nullptr)
+{
+begin = new PNode(k, pow);
+end = begin;
+size++;
+}
+else
+{
+while (curr->Next() != nullptr && curr->Next()->P() > pow)
+curr = curr->Next();
+if (curr->Next() != nullptr)
+{
+if (curr->Next()->P() == pow)
+{
+curr->Next()->setK(curr->Next()->K() + k);
+if (curr->Next()->K() == 0)
+Delete(curr->Next());
+}
+else
+{
+PNode* tmp = new PNode(k, pow);
+tmp->setPrev(curr);
+tmp->setNext(curr->Next());
+curr->Next()->setPrev(tmp);
+curr->setNext(tmp);
+size++;
+}
+}
+else
+{
+end->setNext(new PNode(k, pow));
+end->Next()->setPrev(end);
+end = end->Next();
+size++;
+}
+}
+}
+void Polynom::Print()
+{
+PNode* curr = begin;
+curr->Print();
+curr = curr->Next();
+while (curr != nullptr)
+{
+if (curr->K() > 0)
+cout << " +";
+curr->Print();
+curr = curr->Next();
+}
+cout << endl;
+}
+// (10x^3 + 2x^2)
+double Polynom::Integral(double a, double b)
+{
+double res = 0;
+PNode* curr = begin;
+while (curr != nullptr)
+{
+res += curr->K() / (curr->P() + 1) * (pow(b, curr->P() + 1) - pow(a, curr->P() + 1));
+curr = curr->Next();
+}
+return res;
+}
+
+bool Polynom::Read(string fname)
+{
+ifstream fin(fname);
+if (!fin.is_open())
+return false;
+double k;
+size_t p;
+DeleteAll();
+while (fin >> k >> p)
+{
+if (k != 0)
+Add(k, p);
+}
+fin.close();
+return true;
+}
+bool Polynom::Write(string fname)
+{
+ofstream fout(fname);
+if (!fout.is_open())
+return false;
+PNode* curr = begin;
+while (curr != nullptr)
+{
+fout << curr->K() << " " << curr->P() << endl;
+curr = curr->Next();
+}
+fout.close();
+Print();
+return true;
+}
+bool Polynom::BinRead(string fname)
+{
+ifstream fin(fname);
+if (!fin.is_open())
+return false;
+double k;
+size_t p;
+DeleteAll();
+while (true)
+{
+fin.read((char*)&k, sizeof(k));
+fin.read((char*)&p, sizeof(p));
+if (fin.eof())
+break;
+if (k != 0)
+Add(k, p);
+}
+fin.close();
+return true;
+}
+bool Polynom::BinWrite(string fname)
+{
+ofstream fout(fname);
+if (!fout.is_open())
+return false;
+PNode* curr = begin;
+while (curr != nullptr)
+{
+double k = curr->K();
+size_t p = curr->P();
+fout.write((char*)&k, sizeof(curr->K()));
+fout.write((char*)&p, sizeof(curr->P()));
+curr = curr->Next();
+}
+fout.close();
+return true;
+}
+
+
+Dlist.h
+#pragma once
+#include <string>
+using namespace std;
+class Node
+{
+int value;
+Node next, prev;
+public:
+Node(int v) : value(v), next(nullptr), prev(nullptr) { }
+void Print();
+Node* Next() { return next; }
+Node* Prev() { return prev; }
+int Value() { return value; }
+void setNext(Node* n) { next = n; }
+void setPrev(Node* p) { prev = p; }
+};
+
+class DList
+{
+Node begin, end;
+size_t size;
+public:
+DList() : begin(nullptr), end(nullptr), size(0) { }
+~DList() { DeleteAll(); }
+void DeleteAll();
+void PushBack(int value);
+void Print();
+size_t CountMin();
+bool Read(string fname);
+bool Write(string fname);
+bool BinRead(string fname);
+bool BinWrite(string fname);
+};
+
+Dlist.cpp
+#include "DList.h"
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+void Node::Print()
+{
+cout << value;
+}
+
+
+void DList::DeleteAll()
+{
+Node* curr = begin;
+while (curr != nullptr && curr->Next() != nullptr)
+{
+curr = curr->Next();
+delete curr->Prev();
+}
+delete curr;
+begin = end = nullptr;
+size = 0;
+}
+
+void DList::PushBack(int value)
+{
+size++;
+if (end == nullptr)
+{
+begin = new Node(value);
+end = begin;
+}
+else
+{
+end->setNext(new Node(value));
+end->Next()->setPrev(end);
+end = end->Next();
+}
+}
+void DList::Print()
+{
+Node* curr = begin;
+curr->Print();
+curr = curr->Next();
+while (curr != nullptr)
+{
+cout << ", ";
+curr->Print();
+curr = curr->Next();
+}
+cout << endl;
+}
+size_t DList::CountMin()
+{
+
+size_t res = 1;
+Node* curr = begin;
+if (curr == nullptr)
+return 0;
+int min = curr->Value();
+curr = curr->Next();
+while (curr != nullptr)
+{
+if (curr->Value() == min)
+res++;
+else if (curr->Value() < min)
+{
+min = curr->Value();
+res = 1;
+}
+curr = curr->Next();
+}
+return res;
+}
+
+
+bool DList::Read(string fname)
+{
+ifstream fin(fname);
+if (!fin.is_open())
+return false;
+int v;
+DeleteAll();
+while (fin >> v)
+PushBack(v);
+fin.close();
+return true;
+}
+bool DList::Write(string fname)
+{
+ofstream fout(fname);
+if (!fout.is_open())
+return false;
+Node* curr = begin;
+while (curr != nullptr)
+{
+fout << curr->Value() << endl;
+curr = curr->Next();
+}
+fout.close();
+Print();
+return true;
+}
+bool DList::BinRead(string fname)
+{
+ifstream fin(fname);
+if (!fin.is_open())
+return false;
+int value;
+DeleteAll();
+while (true)
+{
+fin.read((char*)&value, sizeof(value));
+if (fin.eof())
+break;
+PushBack(value);
+}
+fin.close();
+return true;
+}
+bool DList::BinWrite(string fname)
+{
+ofstream fout(fname);
+if (!fout.is_open())
+return false;
+Node* curr = begin;
+while (curr != nullptr)
+{
+int v = curr->Value();
+fout.write((char*)&v, sizeof(curr->Value()));
+curr = curr->Next();
+}
+fout.close();
+return true;
+}

@@ -1,0 +1,54 @@
+
+#include <iostream>
+#include <string>
+using namespace std;
+void Task(char* str)
+{
+int stringCount = 1;
+int punctCount = 0;
+bool newLine = false;
+for (char symbol = str; symbol; ++symbol)
+{
+if ('A' <= symbol && symbol <= 'Z')
+{
+*symbol += 'a' - 'A';
+}
+if (!newLine || *symbol != ' ')
+{
+cout << *symbol;
+newLine = false;
+}
+if (stringCount == 2)
+{
+if (!('a' <= symbol && symbol <= 'z') && *symbol != ' ')
+punctCount++;
+}
+if (symbol == '.' || symbol == '?' || *symbol == '!')
+{
+cout << endl;
+stringCount++;
+newLine = true;
+}
+}
+cout << "punctCount in second string: " << punctCount << endl;
+}
+
+void Task2(string str)
+{
+Task(const_cast<char*>(str.c_str()));
+}
+
+
+int main()
+{
+char tmp[] = "123";
+char str[] = "Hello everybody! What's -up? something else.";
+string str2(str);
+cout << "Task1:" << endl;
+Task(str);
+cout << endl << "Task2: " << endl;
+Task2(str2);
+return 0;
+}
+
+ 

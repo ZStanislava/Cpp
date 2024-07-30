@@ -1,0 +1,516 @@
+#include <iostream>
+//#include "Atom.h"
+#include "Atoms.h"
+
+using namespace std;
+
+int main()
+{
+setlocale(LC_ALL, "Russian");
+unsigned int step;
+unsigned int Number;
+string Id;
+string Name;
+float Weight;
+unsigned int Group;
+unsigned int Period;
+Atom* p;
+char c;
+Atoms table;
+Atoms* selected;
+step = 0;
+cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+while (step != 9)
+{
+cout << "'Таблица Менделеева'\n";
+cout << "0: Загрузить таблицу из БД\n";
+cout << "1: Просмотреть таблицу\n";
+cout << "2: Добавить элемент к таблице\n";
+cout << "3: Удалить строку таблицы\n";
+cout << "4: Сортировать таблицу по номеру элемента\n";
+cout << "5: Сортировать таблицу по обозначению элемента\n";
+cout << "6: Сортировать таблицу по наименованию элемента\n";
+cout << "7: Искать/Выбрать в таблице\n";
+cout << "8: Сохранить таблицу в БД\n";
+cout << "9: Выход\n";
+while (!(cin >> step))
+{
+//cout << "ОШИБКА ВВОДА\n";
+cin.clear();
+fflush(stdin);
+}
+cout << "\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
+switch (step)
+{
+case 0:
+table.Read();
+break;
+case 1:
+table.View();
+cout << "Для продолжения работы введите любой символ: ";
+cin >> c;
+break;
+case 2:
+cout << "Введите номер элемента: ";
+while (!(cin >> Number))
+{
+cin.clear();
+fflush(stdin);
+}
+cout << "Введите обозначение элемента: ";
+cin >> Id;
+cout << "Введите наименование элемента: ";
+cin >> Name;
+cout << "Введите атомный вес элемента: ";
+while (!(cin >> Weight))
+{
+cin.clear();
+fflush(stdin);
+}
+Group = 19;
+cout << "Введите номер группы: ";
+while (!((cin >> Group) && (Group < 19)))
+{
+cin.clear();
+fflush(stdin);
+}
+Period = 8;
+cout << "Введите номер периода: ";
+while (!((cin >> Period) && (Period < 8)))
+{
+cin.clear();
+fflush(stdin);
+}
+p = new Atom(Name, Id, Number, Weight, Group, Period);
+table.Add(p);
+break;
+case 3:
+cout << "Ведите номер строки таблицы: ";
+while (!(cin >> Number))
+{
+cin.clear();
+fflush(stdin);
+}
+table.Delete(Number);
+break;
+case 4:
+table.Sort();
+break;
+case 5:
+table.Sort(1);
+break;
+case 6:
+table.Sort(2);
+break;
+case 7:
+Number = 0;
+Name = "";
+Id = "";
+Weight = 0.0;
+Group = 0;
+Period = 0;
+cout << "Введите номер элемента (0-отбор не по номеру): ";
+while (!(cin >> Number))
+{
+cin.clear();
+fflush(stdin);
+}
+if (Number == 0)
+{
+cout << "Введите обозначение элемента (0-отбор не по обозначению): ";
+cin >> Id;
+if (Id == "0") { Id = ""; }
+if (Id == "")
+{
+cout << "Введите наименование элемента (0-отбор не по наименованию): ";
+cin >> Name;
+if (Name == "0") { Name = ""; }
+if (Name == "")
+{
+cout << "Введите атомный вес элемента (0-отбор не по весу): ";
+while (!(cin >> Weight))
+{
+cin.clear();
+fflush(stdin);
+}
+if (Weight == 0.0)
+{
+cout << "Введите номер группы (0-отбор не по гуппе): ";
+while (!(cin >> Group))
+{
+cin.clear();
+fflush(stdin);
+}
+cout << "Введите номер периода (0-отбор не по периоду): ";
+while (!(cin >> Period))
+{
+cin.clear();
+fflush(stdin);
+}
+}
+}
+}
+}
+p = new Atom(Name, Id, Number, Weight, Group, Period);
+selected = table.Select(*p);
+selected->View();
+cout << "Для продолжения работы введите любой символ: ";
+cin >> c;
+break;
+case 8:
+table.Write();
+}
+}
+return 0;
+}
+
+Atom.h
+
+#include <string>
+#include <iostream>
+#include <fstream>
+using namespace std;
+class Atom
+{
+private:
+std::string Name;
+std::string Id;
+unsigned int Number;
+float Weight;
+unsigned int Group;
+unsigned int Period;
+public:
+Atom(std::string name, std::string id, unsigned int num, float w, unsigned int g, unsigned int p)
+{
+Name = name;
+Id = id;
+Number = num;
+Weight = w;
+Group = g;
+Period = p;
+};
+void View()
+{
+cout.width(26);
+cout << left << Name;
+cout.width(4);
+cout << right << Id;
+cout.width(5);
+cout << right << Number;
+cout.width(10);
+cout << right << Weight;
+cout.width(8);
+cout << right << Group;
+cout.width(8);
+cout << right << Period << "\n";
+}
+void Write(ofstream& out)
+{
+if (out.is_open())
+out << Name << "\n" << Id << "\n" << Number << "\n" << Weight << "\n" << Group << "\n" << Period << "\n";
+}
+string getName() { return Name; }
+string getId() { return Id; }
+unsigned int getNumber() { return Number; }
+float getWeight() { return Weight; }
+unsigned int getGroup() { return Group; }
+unsigned int getPeriod() { return Period; }
+void setName(string InName)
+{
+if (InName.empty())
+{
+throw "Наименование элемента, не может быть пустым";
+}
+Name = InName;
+}
+void setId(string InId)
+{
+if (InId.empty())
+{
+throw "Обозначение элемента не может быть пустым";
+}
+if (InId.length() > 2)
+{
+throw "Обозначение элемента не может состоять из более чем двух символов";
+}
+Id = InId;
+}
+void setNumber(unsigned int InNumber)
+{
+if (InNumber == 0)
+{
+throw "Номер элемента не может быть равным нулю";
+}
+Number = InNumber;
+}
+void setWeight(float InWeight)
+{
+if (InWeight == 0.0)
+{
+throw "Атомный вес элемента не может быть равным нулю";
+}
+if (InWeight < 0.0)
+{
+throw "Атомный вес элемента не может быть отрицательным числом";
+}
+Weight = InWeight;
+}
+void setGroup(unsigned int InGroup)
+{
+if (InGroup == 0)
+{
+throw "Номер группы не может быть равным нулю";
+}
+if (InGroup > 18)
+{
+throw "Номер группы не может быть больше 18";
+}
+Group = InGroup;
+}
+void setPeriod(unsigned int InPeriod)
+{
+if (InPeriod == 0)
+{
+throw "Номер периода не может быть равным нулю";
+}
+if (InPeriod > 7)
+{
+throw "Номер периода не может быть больше 7";
+}
+Period = InPeriod;
+}
+bool Compare(Atom& sample)
+{
+if (sample.getNumber() > 0)
+{
+return (Number == sample.getNumber());
+}
+if (!sample.getName().empty())
+{
+return (Name.compare(sample.getName()) == 0);
+}
+if (!sample.getId().empty())
+{
+return (Id.compare(sample.getId()) == 0);
+}
+if (sample.getWeight() > 0.0)
+{
+return (Weight == sample.getWeight());
+}
+if (sample.getPeriod() > 0)
+{
+if (!(Period == sample.getPeriod()))
+{
+return false;
+}
+}
+if (sample.getGroup() > 0)
+{
+return (Group == sample.getGroup());
+}
+return true;
+}
+friend bool operator< (const Atom& a1, const Atom& a2) { return a1.Number < a2.Number; }
+friend bool operator>= (const Atom& a1, const Atom& a2) { return !(a1 < a2); }
+friend bool operator> (const Atom& a1, const Atom& a2) { return a1.Number > a2.Number; }
+friend bool operator<= (const Atom& a1, const Atom& a2) { return !(a1 > a2); }
+Atom& operator= (const Atom& a)
+{
+Name = a.Name;
+Id = a.Id;
+Number = a.Number;
+Weight = a.Weight;
+Group = a.Group;
+Period = a.Period;
+return *this;
+}
+};
+bool compareByNumber(Atom a1, Atom a2) { return (a1->getNumber() < a2->getNumber()); }
+bool compareById(Atom a1, Atom a2) { return (a1->getId() < a2->getId()); }
+bool compareByName(Atom a1, Atom a2) { return (a1->getName() < a2->getName()); }
+Atoms.h
+#include "Atom.h"
+#include <string>
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <vector> // std::vector
+
+using namespace std;
+class Atoms
+{
+Atom* Atoms_Table[110];
+unsigned int count;
+std::string DB_FileName;
+public:
+Atoms()
+{
+DB_FileName = "DB_Atoms.txt";
+count = 0;
+};
+void Add(Atom* item)
+{
+if (count < 110)
+{
+Atoms_Table[count++] = item;
+}
+else
+{
+throw new exception;
+}
+};
+void Delete(unsigned int n)
+{
+if (n < count)
+{
+count--;
+for (unsigned int i = n; i < count; i++)
+{
+Atoms_Table[i] = Atoms_Table[i + 1];
+}
+}
+else {
+throw new exception;
+}
+};
+unsigned int Search(Atom& sample)
+{
+for (unsigned int i = 0; i < count; i++)
+{
+if (Atoms_Table[i]->Compare(sample))
+{
+return i;
+}
+}
+return count;
+}
+void DeleteBySample(Atom& sample)
+{
+unsigned int i;
+i = Search(sample);
+if (i < count)
+{
+Delete(i);
+}
+}
+void View()
+{
+cout.width(4);
+cout << left << "#";
+cout.width(26);
+cout << left << "Наименование";
+cout.width(4);
+cout << right << "AZ";
+cout.width(5);
+cout << right << "№";
+cout.width(10);
+cout << right << "Вес";
+cout.width(8);
+cout << right << "Группа";
+cout.width(8);
+cout << right << "Период" << "\n";
+for (unsigned int i = 0; i < count; i++)
+{
+cout.width(4);
+cout << left << i;
+Atoms_Table[i]->View();
+}
+}
+void View(int i)
+{
+if (i < count)
+{
+cout.width(3);
+cout << left << i;
+Atoms_Table[i]->View();
+}
+}
+void Read()
+{
+ifstream fin(DB_FileName.c_str());
+if (fin.is_open())
+{
+for (unsigned int i = 0; i < count; i++)
+{
+delete Atoms_Table[i];
+}
+count = 0;
+std::string iname;
+std::string iid;
+int n;
+int g;
+int p;
+float w;
+while (!fin.eof())
+{
+getline(fin, iname); //Name
+if (!iname.empty())
+{
+getline(fin, iid); //Id
+fin >> n; //Number
+fin >> w; //Weight
+fin >> g; //Group
+fin >> p; //Period
+Atom* af = new Atom(iname, iid, n, w, g, p);
+Add(af);
+}
+}
+fin.close();
+}
+}
+void Write()
+{
+ofstream fout(DB_FileName.c_str());
+if (fout.is_open())
+{
+for (unsigned int i = 0; i < count; i++)
+{
+Atoms_Table[i]->Write(fout);
+}
+fout.close();
+}
+}
+
+void Sort() { Sort(0); }
+void Sort(unsigned int order)
+{
+std::vector<Atom*> temp(Atoms_Table, Atoms_Table + count);
+switch (order)
+{
+case 1:
+sort(temp.begin(), temp.end(), compareById);
+break;
+case 2:
+sort(temp.begin(), temp.end(), compareByName);
+break;
+default:
+sort(temp.begin(), temp.end(), compareByNumber);
+break;
+}
+for (unsigned int i = 0; i < count; i++)
+{
+Atoms_Table[i] = temp[i];
+}
+}
+Atoms* Select(Atom& sample)
+{
+Atoms* Res;
+Res = new Atoms();
+for (unsigned int i = 0; i < count; i++)
+{
+if (Atoms_Table[i]->Compare(sample))
+{
+Res->Add(Atoms_Table[i]);
+}
+}
+return Res;
+}
+public:
+~Atoms()
+{
+for (unsigned int i = 0; i < count; i++)
+{
+delete Atoms_Table[i];
+}
+};
+};

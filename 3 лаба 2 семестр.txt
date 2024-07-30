@@ -1,0 +1,89 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+
+using namespace std;
+void replaceNumbers(ostream& fout, char* str, int maxLen)
+{
+int i = 0;
+int state = 0;
+string strs[2];
+while (str[i])
+{
+if (str[i] >= '0' && str[i] <= '9')
+{
+if (state == 0)
+state = 1;
+strs[state - 1] += str[i];
+}
+else if (str[i] == '.' && state == 1)
+{
+if (str[i + 1] >= '0' && str[i + 1] <= '9')
+state = 2;
+else
+{
+fout << string(strs[0].rbegin(), strs[0].rend());
+state = 0;
+}
+}
+else
+{
+if (state == 1)
+{
+fout << string(strs[0].rbegin(), strs[0].rend());
+}
+else if (state == 2)
+{
+fout << strs[1] << '.' << strs[0];
+}
+state = 0;
+strs[0].clear();
+strs[1].clear();
+}
+if (state == 0)
+fout << str[i];
+i++;
+}
+if (state == 1)
+{
+fout << string(strs[0].rbegin(), strs[0].rend());
+}
+else if (state == 2)
+{
+fout << strs[1] << '.' << strs[0];
+}
+fout << endl;
+}
+
+int main()
+{
+string fname;
+ifstream fin;
+ofstream fout;
+do
+{
+cout << "enter input filename: ";
+cin >> fname;
+fin.open(fname);
+} while (!fin.is_open());
+do
+{
+cout << "enter output filename: ";
+cin >> fname;
+fout.open(fname);
+} while (!fin.is_open());
+
+char str[1000];
+int len;
+while (fin.getline(str, 1000))
+replaceNumbers(fout, str, 1000);
+fin.close();
+fout.close();
+cout << "Done!" << endl;
+}
+
+
+
+
+
+
