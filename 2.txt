@@ -1,0 +1,146 @@
+#include <iostream>
+#include <fstream>
+#include <iomanip> 
+#include <time.h>
+#include <math.h>
+
+#define DELIMETER			","
+#define POINTS_MIN			1000
+#define POINTS_MAX			2000
+#define POINTS_FILE			"Points.txt"
+#define POINTS_RES_FILE		"PointsRes.txt"
+
+using namespace std;
+
+//Function prototypes
+int generatePoints(int);
+int checkPoints(void);
+int computeSquare(void);
+
+int main(int argc, char* argv[]) {
+
+	cout << "Lab2 started" << endl;
+	srand((unsigned)time(NULL));																						//set a seed for pseudorandom number generation
+
+	int numPoints = rand() % (POINTS_MAX - POINTS_MIN + 1) + POINTS_MIN;												//generate the number of points to be used
+	generatePoints(numPoints);																							//generate points and save them to file
+	checkPoints();																										//read points and make the compliance check, save to a new file with a match flag
+	computeSquare();																									//read points from PointsRes.txt and compute a figure square
+	return 0;
+}
+
+//#################################################################### PARAGRAPH 1 #################################################
+int generatePoints(int numPoints) {																						//generate the points and write it to a file 
+	cout << "Generating " << numPoints << " points...";
+
+	double** points = new double* [numPoints];																			//define array of points of numPoints size
+
+	for (int i = 0; i < numPoints; i++) {
+		points[i] = new double[2];
+		for (int j = 0; j < 2; j++) {
+			double randomValue = (double)rand() / RAND_MAX * 2.0 - 1.0;													//generate double in range -1 to 1
+			points[i][j] = randomValue;
+		}
+	}
+	cout << "done" << endl;
+
+	cout << "Writing points to file " << POINTS_FILE << "...";
+	ofstream pointsFile(POINTS_FILE);																					//write points to file
+	if (pointsFile.is_open()) {
+		pointsFile.setf(ios::fixed, ios::floatfield);
+		pointsFile.precision(2);																						//set output precision 
+		for (int i = 0; i < numPoints; i++)
+			pointsFile << points[i][0] << DELIMETER << points[i][1] << endl;											//write point coordinates to points file
+		pointsFile.close();																								//close Points file (write access)
+	}
+	else {
+		cerr << "Unable to open file " << POINTS_FILE << " for writing" << endl;
+		return 1;
+	}
+	cout << "done" << endl;
+
+	for (int i = 0; i < numPoints; i++)																					//delete the points array
+		delete[]  points[i];
+	delete[] points;
+
+	return 0;
+}
+//#################################################################### PARAGRAPH 2 #################################################
+int checkPoints(void) {																									//read points from file and check if they match against a figure
+	char buf[80], * y_char = 0;																							//buffer to read a line from PointsFile.txt into
+	int numPoints = 0, numMatches = 0;
+
+	cout << "Reading points from file " << POINTS_FILE << ", checking agains fugure match and writing to " << POINTS_RES_FILE << "...";
+	ifstream pointsFile(POINTS_FILE);																					//Points.txt file
+	ofstream pointsResFile(POINTS_RES_FILE);																			//PointsRes.txt file
+
+	if (pointsFile.is_open()) {																							//open Points.txt file (read acces)
+		if (pointsResFile.is_open()) {																					//open PointsRes.txt file (write access)
+			pointsResFile.setf(ios::fixed, ios::floatfield);
+			pointsResFile.precision(2);																					//set output precision for pointsRes file 
+		}
+		else {																											//unable to open PointsRes.txt file (write access)
+			pointsFile.close();																							//close Points.txt file (read access)
+			cerr << "Unable to open file " << POINTS_RES_FILE << " for writing" << endl;
+			return 1;
+		}
+
+		while (!pointsFile.eof()) {
+			memset(buf, '\0', sizeof(buf));																				//clean the buffer
+			pointsFile.getline(buf, sizeof(buf));																		//read points from file line by line into the buf
+
+			if (strstr(buf, DELIMETER) == NULL)																			//delimeter is not found, skip the string
+				continue;
+			numPoints++;																								//points count
+			double x = strtold(buf, &y_char);																			//parse x, y_char will hold a pointer to ',' delimiter
+			double y = atof(y_char + 1);																				//parse y - from the next char after y_char
+			bool match = x <= 0 || (sqrt(x * x + y * y) <= 1);															//check if the point matches agains the figure
+			if (match)
+				numMatches++;																							//matched points count
+			pointsResFile << x << DELIMETER << y << DELIMETER << (match ? "t" : "f") << endl;							//write to pointsRes file with match flag (t - match, f - not match)
+		}
+		pointsFile.close();																								//close Points.txt file (read access)
+		pointsResFile.close();																							//close PointsRes.txt file (write access)
+	}
+	else {
+		cerr << "Unable to open file " << POINTS_FILE << " for reading" << endl;
+		return 1;
+	}
+	cout << "done, " << numPoints << " points read and " << numMatches << " matches have been found" << endl;
+	return 0;
+}
+
+//#################################################################### PARAGRAPH 4 #################################################
+int computeSquare() {																									//read the PointRes.txt and compute a figure square 
+	ifstream pointsResFile(POINTS_RES_FILE);																			//PointsRes.txt file
+	char buf[80];
+	char* tok = NULL, * next_token = NULL;
+	int i = 0;
+	double numPoints = 0.0, numMatches = 0.0, square = 0.0, real_square = 0.0, deviation = 0.0;
+
+	cout << "Reading points from " << POINTS_RES_FILE << "...";
+	if (pointsResFile.is_open()) {																						//open PointsRes.txt file (read acces)
+		while (!pointsResFile.eof()) {
+			memset(buf, '\0', sizeof(buf));																				//clean the buffer
+			pointsResFile.getline(buf, sizeof(buf));																	//read points from file line by line into the buf
+			for (i = 0, tok = strtok_s(buf, DELIMETER, &next_token); tok != NULL; tok = strtok_s(NULL, DELIMETER, &next_token), i++) {
+				if (i == 2 && strcmp(tok, "t") == 0)																	//count matched points
+					numMatches++;
+			}
+			if (i)																										//count total number of points in file PointsRes.txt
+				numPoints++;
+		}
+	}
+	pointsResFile.close();																								//close the file PointsRes.txt
+	cout << "done, " << numPoints << " points and " << numMatches << " matches have been read" << endl;
+
+	square = numMatches / numPoints * 4.0;																				//compute the figure square
+
+	//#################################################################### PARAGRAPH 5 #################################################
+	real_square = (1 * 2) + (3.14 * 1 * 1 / 2);																			//compute a real figure square
+	deviation = square - real_square;																					//compute the difference between 
+	cout << "Computed figure square: " << numMatches << " / " << numPoints << " * 4.0 = " << square << ", real square = " << real_square << ", deviation = " << deviation << endl;
+
+	return 0;
+}
+

@@ -1,0 +1,123 @@
+
+#include <iostream>
+#include <windows.h>
+#include <time.h>
+#include <stdlib.h>
+
+
+unsigned int var;
+unsigned short var1;
+unsigned long var2;
+unsigned long long var3;
+
+
+int main()
+{
+	srand((unsigned int)time(NULL));
+	var = 4;
+
+	var = rand() % 100 + 1;
+	var1 = rand() % 100 + 1;
+	var2 = rand() % 100 + 1;
+	var3 = (unsigned long long)rand() % 100 + 1;
+
+	unsigned char var4 = rand() % 100 + 1;
+
+	int var5 = rand() % 100 + 1;
+	int var5N = -(rand() % 100 + 1);
+
+	short var6 = rand() % 100 + 1;
+	short var6N = -(rand() % 100 + 1);
+
+	long var7 = rand() % 100 + 1;
+	long var7N = -(rand() % 100 + 1);
+
+	long long var8 = (long long)rand() % 100 + 1;
+	long long var8N = -(rand() % 100 + 1);
+
+	char var9 = rand() % 100 + 1;
+	char var9N = -(rand() % 100 + 1);
+
+	float var10 = (float)(rand() % 100 + 1.0);
+	float var10N = -(rand() % 100 + 1.0F);
+
+	double var11 = (double)(rand() % 100 + 1.0);
+	double var11N = -(rand() % 100 + 1);
+
+	long double var12 = (long double)(rand() % 100 + 1.0);
+	long double var12N = -(rand() % 100 + 1);
+
+	float* dyn_float = new float(rand() % 100 + 1.0F);
+	float* dyn_floatN = new float(-(rand() % 100 + 1.0F));
+
+	double* dyn_double = new double((double)(rand() % 100 + 1.0));
+	double* dyn_doubleN = new double(-(rand() % 100 + 1));
+
+	long double* dyn_long_double = new long double((long double)(rand() % 100) + 1.0);
+	long double* dyn_long_doubleN = new long double(-(rand() % 100 + 1));
+
+	
+	FILE* fp = NULL;
+	if ((errno = fopen_s(&fp, "memory_dump.txt", "w+")) != 0) {
+		perror("fopen_s");
+		return 1;
+	}
+	
+	fprintf(fp, "var = %u\t\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var, var, &var, sizeof(var));
+
+	fprintf(fp, "var1 = %u\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var1, var1, &var1, sizeof(var1));
+
+	fprintf(fp, "var2 = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var2, var2, &var2, sizeof(var2));
+	
+	fprintf(fp, "var3 = %llu\t0x%08llx\t\taddress = 0x%08p\tsizeof = %d\n", var3, var3, &var3, sizeof(var3));
+	
+	fprintf(fp, "var4 = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var4, var4, &var4, sizeof(var4));
+	
+	fprintf(fp, "var5 = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var5, var5, &var5, sizeof(var5));
+	fprintf(fp, "var5N = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var5N, var5N, &var5N, sizeof(var5N));
+	
+	fprintf(fp, "var6 = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var6, var6, &var6, sizeof(var6));
+	fprintf(fp, "var6N = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var6N, var6N, &var6N, sizeof(var6N));
+	
+	fprintf(fp, "var7 = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var7, var7, &var7, sizeof(var7));
+	fprintf(fp, "var7N = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var7N, var7N, &var7N, sizeof(var7N));
+	
+	fprintf(fp, "var8 = %lld\t0x%08llx\t\taddress = 0x%08p\tsizeof = %d\n", var8, var8, &var8, sizeof(var8));
+	fprintf(fp, "var8N = %lld\t0x%08llx\taddress = 0x%08p\tsizeof = %d\n", var8N, var8N, &var8N, sizeof(var8N));
+	
+	fprintf(fp, "var9 = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var9, var9, &var9, sizeof(var9));
+	fprintf(fp, "var9N = %d\t0x%08x\t\taddress = 0x%08p\tsizeof = %d\n", var9N, var9N, &var9N, sizeof(var9N));
+	
+	fprintf(fp, "var10 = %.2f\t0x%08llx\taddress = 0x%08p\tsizeof = %d\n", var10, var10, &var10, sizeof(var10));
+	fprintf(fp, "var10N = %.2f\t0x%08llx\taddress = 0x%08p\tsizeof = %d\n", var10N, var10N, &var10N, sizeof(var10N));
+
+	fprintf(fp, "var11 = %.2f\t0x%08llx\taddress = 0x%08p\tsizeof = %d\n", var11, var11, &var11, sizeof(var11));
+	fprintf(fp, "var11N = %.2f\t0x%08llx\taddress = 0x%08p\tsizeof = %d\n", var11N, var11N, &var11N, sizeof(var11N));
+
+	fprintf(fp, "var12 = %.2lf\t0x%08llx\taddress = 0x%08p\tsizeof = %d\n", var12, var12, &var12, sizeof(var12));
+	fprintf(fp, "var12N = %.2lf\t0x%08llx\taddress = 0x%08p\tsizeof = %d\n", var12N, var12N, &var12N, sizeof(var12N));
+	
+	fclose(fp);
+
+	delete dyn_float;
+	delete dyn_floatN;
+	delete dyn_double;
+	delete dyn_doubleN;
+	delete dyn_long_double;
+	delete dyn_long_doubleN;
+
+	return 0;
+}
+
+
+
+
+
+// Советы по началу работы 
+//   1. В окне обозревателя решений можно добавлять файлы и управлять ими.
+//   2. В окне Team Explorer можно подключиться к системе управления версиями.
+//   3. В окне "Выходные данные" можно просматривать выходные данные сборки и другие сообщения.
+//   4. В окне "Список ошибок" можно просматривать ошибки.
+//   5. Последовательно выберите пункты меню "Проект" > "Добавить новый элемент", чтобы создать файлы кода, или "Проект" > "Добавить существующий элемент", чтобы добавить в проект существующие файлы кода.
+//   6. Чтобы снова открыть этот проект позже, выберите пункты меню "Файл" > "Открыть" > "Проект" и выберите SLN-файл.
+

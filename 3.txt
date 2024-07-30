@@ -1,0 +1,200 @@
+#include <iostream>
+#include <math.h>
+#include <stdio.h>
+#include <fstream>
+#include <iomanip>
+#include <locale.h>
+
+
+using namespace std;
+
+double compute_next_member(double, double, int);
+void record(int i, double x, double sum, int N);
+int calculate(double* sum, double x, double precision);
+double f(double x)
+{
+	return log(x + sqrt(x * x + 1));
+}
+void Part1();
+void Part2();
+void Part3(); //функция, создающая таблицу 2
+
+int main() {
+
+	double x, sum = 0;
+	int N;
+
+	setlocale(LC_ALL, "Russian");
+	Part1();
+	Part2();
+	Part3(); //вызов функции, создающей таблицу 2
+	return 0;
+}
+
+
+
+double compute_next_member(double current, double x, int n) {
+	return -current * x * x * (n - 2) / (n - 1) / n;
+
+}
+
+
+
+void record(int i, double x, double sum, int N) {
+	FILE* file;
+	errno_t err;
+
+	err = fopen_s(&file, "output.txt", "a");
+	if (err != 0)
+	{
+		cout << "Error open fine" << endl;
+		return;
+	}
+	else
+		cout << "File opened ok" << endl;
+	fprintf_s(file, "%d.\t%0.2f\t%0.2f\t%0.2f\t%d\n", i, x, f(x), sum, N);
+	fclose(file);
+	return;
+}
+
+int calculate(double* sum, double x, double precision)
+{
+	double current = x;
+	int i;
+	*sum = 0;
+
+	for (i = 1; fabs(current) >= precision && i <= 100; i += 2) { //cчетчик степени
+
+		cout << "power = " << i << " result = " << current << endl;
+		*sum += current; // складываем сумму и результат
+		current = compute_next_member(current, x, i + 2); // умножаем дробную часть члена ряда на результат
+
+	}
+
+	cout << "sum = " << *sum << endl;
+
+	if (*sum == DBL_MAX || *sum == -DBL_MAX)
+		cout << "ряд несходящийся" << endl; //исследуем сходимость рядов
+	else
+		cout << "ряд сходящийся" << endl;
+
+	return i;
+}
+
+void Part1() {
+
+	double x;
+	double sum = 0;
+	cout << "Enter x: ";
+	cin >> x;
+	if (x < -1 || x > 1) { //условие на x
+		cout << "Error" << endl;
+		return;
+	}
+	calculate(&sum, x, 0);
+}
+
+void part2_header(double pers)
+{
+	FILE* file;
+	errno_t err;
+
+	err = fopen_s(&file, "output.txt", "a");
+	if (err != 0) {
+		cout << "Error open fine" << endl;
+		return;
+	}
+	cout << "File opened ok" << endl;
+
+	fprintf(file, "%.2f ln(x + sqrt(x^2 + 1))\n", pers);
+	fprintf(file, "N\tп/п\tх\tf(x)\tS(x)\tкол-во слогаемых\n");
+
+	fclose(file);
+}
+
+void Part3()  //функция, создающая таблицу 2
+{
+
+	ifstream fin("input.txt"); //открываем для прочтения файл INPUT.TXT
+	FILE* fout;
+	int err = fopen_s(&fout, "output.txt", "a");
+
+	if (!fin.is_open()) {
+		cout << "Error open file input.txt" << endl;
+		return;
+	}
+	else
+		cout << "File input.txt opened ok" << endl;
+	if (err != 0)
+	{
+		cout << "Error open file output.txt" << endl;
+		return;
+	}
+
+	double epsilon = 0.1;//создаём точность epsilon
+
+	double x[5];//создаём переменную х
+	//x1		 x2   x3    x4    x5
+	//E    N	 E N  E N   E N   E N
+	//10-1
+	//10-2
+	//...
+	for (int z(0); z < 5; z++)
+	{
+		fin >> x[z];//считываем значение х
+		fprintf_s(fout, "|   %+.3lf   ", x[z]);
+	}
+	fprintf_s(fout, "|\n");
+
+	fprintf_s(fout, "| ");
+	for (int z(0); z < 5; z++)
+	{
+		fprintf_s(fout, "E        N | ");
+	}
+	fprintf_s(fout, "\n");
+
+	for (int i(1); i <= 10; i++) {//для 10 степеней эпсилон
+		fprintf_s(fout, "| ");
+		for (int z(0); z < 5; z++) {//для каждого из пяти х
+			int N(0);//создаём счётчик количества слагаемых N
+			double sum;
+			N = calculate(&sum, x[z], epsilon);//вызываем функцию для подсчёта N
+			fprintf_s(fout, "10^-%02d %3d | ", i, N);//вывод степени эпсилон и количества слагаемых
+		}
+		fprintf_s(fout, "\n");
+		epsilon *= 0.1;
+	}
+	fclose(fout);//закрываем файл OUTPUT.TXT
+	fin.close();//закрываем файл INPUT.TXT
+}
+
+
+void Part2()
+{
+	double sum, x, a, b;
+	int N;
+
+	cout << "Enter a:";
+	cin >> a;
+	cout << "Enter b:";
+	cin >> b;
+
+	if (a < -1)
+		a = -1;
+
+	if (b > 1)
+		b = 1;
+
+	double x_step = (b - a) / 20.0;
+	double pers = 0.0001;
+
+	part2_header(pers);
+	int i = 1;
+	for (x = a; x < b; x += x_step)
+	{
+		N = calculate(&sum, x, pers);
+		record(i, x, sum, N);
+		i++;
+	}
+}
+

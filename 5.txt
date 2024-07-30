@@ -1,0 +1,202 @@
+
+#include <iostream>
+#include <vector>
+#include "DinMas.h"
+#include <time.h>
+using namespace std;
+
+int main()
+{
+srand(time(0));
+DinMas m;
+m.FillRand();
+m.print();
+DinMas res = m.AllDiff();
+res.print();
+res.Save();
+return 0;
+}
+
+// DinMas.cpp
+
+include "DinMas.h"
+#include <time.h>
+#include <string>
+#include <sstream>
+#include <fstream>
+using namespace std;
+
+void DinMas::insert(int val)
+{
+if (size >= MaxSize)
+{
+//сохраняем все из m в tmp
+int* tmp = new int[MaxSize];
+memcpy(tmp, m, sizeof(int) * MaxSize);
+
+//удаляем m потому что нужно больше памяти
+delete[]m;
+//выделяем в 2 раза больше памяти
+m = new int[MaxSize * 2];
+//копируем сохренные в тмп старые елементы обратно в м
+memcpy(m, tmp, sizeof(int) * MaxSize);
+MaxSize *= 2;
+}
+m[size] = val;
+size++;
+}
+void DinMas::deleteAll() //очищает(удаляет) весь список
+{
+while (size)
+pop();
+};
+
+void DinMas::pop() //удаляет последний елемент
+{
+m[size] = 0;
+size--;
+}
+
+int DinMas::at(size_t ind) //возвращает елемент на ind позиции ind = [0; size-1]
+{
+if (ind < size)
+return m[ind];
+else
+{
+cout << "Wrong ind " << ind << endl;
+return -1;
+}
+}
+
+int DinMas::operator[](size_t ind) { return at(ind); }
+
+void DinMas::Swap(int l, int r)
+{
+//если по введенному индексу не существует елемента - ничего не делаем
+if (l >= size || r >= size)
+return;
+
+int tmp = m[l];
+m[l] = m[r];
+m[r] = tmp;
+}
+
+void DinMas::print()
+{
+for (int i = 0; i < size; i++)
+cout << m[i] << " ";
+cout << endl;
+}
+
+void DinMas::FillRand()
+{
+int n = rand() % 20 + 1;
+for (int i = 0; i < n; i++)
+insert(rand() % 201 - 100);
+}
+void DinMas::FillManual()
+{
+cout << "Enter sequence of numbers (in one line): " << endl;
+int x;
+string s;
+getline(cin, s);
+stringstream ss(s);
+while (ss >> x)
+insert(x);
+}
+void DinMas::FillFromFile()
+{
+cout << "Enter filename: ";
+string fName;
+cin >> fName;
+ifstream fin(fName);
+if (!fin.is_open())
+{
+cout << "couldn't open file: " << fName;
+return;
+}
+int x;
+while (fin >> x)
+insert(x);
+fin.close();
+}
+
+bool DinMas::Contains(int a)
+{
+for (int i = 0; i < size; i++)
+if (m[i] == a)
+return true;
+
+return false;
+}
+
+void DinMas::MinMax(int& min, int& max)
+{
+min = max = m[0];
+for (int i = 1; i < size; i++)
+{
+if (m[i] < min)
+min = m[i];
+if (m[i] > max)
+max = m[i];
+}
+}
+
+DinMas DinMas::AllDiff()
+{
+DinMas* res = new DinMas;
+int min, max;
+MinMax(min, max);
+for (int i = max; i >= min; i--)
+{
+if (!Contains(i))
+res->insert(i);
+}
+return *res;
+}
+
+void DinMas::Save(string fname)
+{
+ofstream fout(fname);
+if (!fout.is_open())
+{
+cout << "Couldn't open file " << fname << endl;
+return;
+}
+for (int i = 0; i < size; i++)
+fout << m[i] << " ";
+fout << endl;
+fout.close();
+}
+
+// DinMas.h
+
+#pragma once
+#include <memory>
+#include <iostream>
+
+using namespace std;
+
+
+class DinMas
+{
+int* m;
+size_t size, MaxSize;
+public:
+DinMas(size_t s = 10) { m = new int[s]; MaxSize = s; size = 0; }
+~DinMas() { delete[] m; }
+void deleteAll();
+void pop();
+int at(size_t ind);
+int operator[](size_t ind);
+void Swap(int l, int r);
+void print();
+void insert(int val);
+void FillRand();
+void FillManual();
+void FillFromFile();
+bool Contains(int a);
+void MinMax(int& min, int& max);
+DinMas AllDiff();
+void Save(string fname = "OUTPUT.TXT");
+};

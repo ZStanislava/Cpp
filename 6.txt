@@ -1,0 +1,437 @@
+#pragma once
+#include <memory>
+#include <iostream>
+
+using namespace std;
+
+
+class DinMas
+{
+char* m;
+size_t size, MaxSize;
+public:
+DinMas(size_t s = 10) { m = new char[s]; MaxSize = s; size = 0; }
+~DinMas() {}
+void deleteAll();
+void pop();
+char at(size_t ind);
+char operator[](size_t ind);
+void Swap(int l, int r);
+void print();
+void insert(char val);
+void FromString(string str);
+void FromInt(int val);
+void Invert();
+int Size() { return size; }
+};
+
+ 
+
+#pragma once
+#include <string>
+#include <iostream>
+#include "DinMas.h"
+using namespace std;
+class HugeNumber
+{
+DinMas number;
+public:
+HugeNumber() {}
+HugeNumber(int a);
+~HugeNumber() {}
+void Print() { number.print(); }
+void ReadFromFile(string fname = "INPUT.TXT");
+void Generate(int n = 0);
+void Save(string fname = "OUTPUT.TXT");
+HugeNumber operator+(HugeNumber& other);
+HugeNumber operator+=(HugeNumber& other)
+{
+this = this + other;
+return *this;
+}
+HugeNumber operator*(char c);
+HugeNumber operator*=(char c)
+{
+this = this * c;
+return *this;
+}
+HugeNumber operator*(HugeNumber& other);
+HugeNumber operator*=(HugeNumber& other)
+{
+this = this * other;
+return *this;
+}
+bool operator>(HugeNumber& other);
+bool operator==(HugeNumber& other);
+bool operator<(HugeNumber& other)
+{
+return !(this == other || this > other);
+}
+bool operator>=(HugeNumber& other)
+{
+return !(*this < other);
+}
+bool operator<=(HugeNumber& other)
+{
+return !(*this > other);
+}
+HugeNumber& operator++()
+{
+HugeNumber tmp(1);
+*this += tmp;
+return *this;
+}
+HugeNumber& operator++(int)
+{
+HugeNumber old(*this);
+++* this;
+return old;
+}
+};
+
+ 
+
+#include "DinMas.h"
+#include <time.h>
+#include <string>
+#include <sstream>
+#include <fstream>
+using namespace std;
+
+void DinMas::insert(char val)
+{
+if (size >= MaxSize)
+{
+//сохраняем все из m в tmp
+char* tmp = new char[MaxSize];
+memcpy(tmp, m, sizeof(char) * MaxSize);
+
+//удаляем m потому что нужно больше памяти
+delete[]m;
+//выделяем в 2 раза больше памяти
+m = new char[MaxSize * 2];
+//копируем сохренные в тмп старые елементы обратно в м
+memcpy(m, tmp, sizeof(char) * MaxSize);
+MaxSize *= 2;
+}
+m[size] = val;
+size++;
+}
+void DinMas::deleteAll() //очищает(удаляет) весь список
+{
+while (size)
+pop();
+};
+
+void DinMas::pop() //удаляет последний елемент
+{
+m[size] = 0;
+size--;
+}
+
+char DinMas::at(size_t ind) //возвращает елемент на ind позиции ind = [0; size-1]
+{
+if (ind < size)
+return m[ind];
+else
+{
+cout << "Wrong ind " << ind << endl;
+return -1;
+}
+}
+
+char DinMas::operator[](size_t ind) { return at(ind); }
+
+void DinMas::Swap(int l, int r)
+{
+//если по введенному индексу не существует елемента - ничего не делаем
+if (l >= size || r >= size)
+return;
+
+char tmp = m[l];
+m[l] = m[r];
+m[r] = tmp;
+}
+
+void DinMas::print()
+{
+for (int i = 0; i < size; i++)
+cout << char(m[i] + '0');
+cout << endl;
+}
+
+void DinMas::FromString(string str)
+{
+for (int i = 0; i < str.length(); i++)
+{
+insert(str[i] - '0');
+}
+}
+
+void DinMas::Invert()
+{
+for (int i = 0; i < size / 2; i++)
+Swap(i, size - 1 - i);
+}
+
+void DinMas::FromInt(int val)
+{
+if (val < 0)
+return;
+while (val > 0)
+{
+insert(val % 10);
+val /= 10;
+}
+Invert();
+}
+
+ 
+
+#include "HugeNumber.h"
+#include <fstream>
+#include <sstream>
+using namespace std;
+void HugeNumber::ReadFromFile(string fname)
+{
+ifstream fin(fname);
+if (!fin.is_open())
+{
+cout << "Couldn't open " << fname << endl;
+return;
+}
+string num;
+fin >> num;
+number.FromString(num);
+fin.close();
+}
+
+void HugeNumber::Generate(int n)
+{
+if (n == 0)
+n = rand() % 40 + 40; //количество цифр в числе будет [40; 79]
+
+/*
+if (rand() % 2) //генерим отрицательный знак у числа
+number.insert('-');
+*/
+
+number.insert(1 + rand() % 9); //первая цифра [1;9]
+for (int i = 1; i < n; i++)
+number.insert(0 + rand() % 10); //остальные [0;9]
+}
+
+void HugeNumber::Save(string fname)
+{
+ofstream fout(fname);
+if (!fout.is_open())
+{
+cout << "Couldn't open " << fname << endl;
+return;
+}
+
+for (int i = 0; i < number.Size(); i++)
+fout << char(number[i] + '0');
+fout << endl;
+fout.close();
+}
+
+HugeNumber HugeNumber::operator+(HugeNumber& other)
+{
+HugeNumber l, r;
+HugeNumber res;
+if (number.Size() <= other.number.Size())
+{
+l.number = number;
+r.number = other.number;
+}
+else
+{
+l.number = other.number;
+r.number = number;
+}
+bool flag = false;
+for (int i = 1; i <= l.number.Size(); i++)
+{
+char tmp = r.number[r.number.Size() - i] + l.number[l.number.Size() - i];
+
+if (flag)
+{
+tmp++;
+flag = false;
+}
+
+if (tmp >= 10)
+{
+tmp -= 10;
+flag = true;
+}
+res.number.insert(tmp);
+}
+for (int i = l.number.Size() + 1; i <= r.number.Size(); i++)
+{
+char tmp = r.number[r.number.Size() - i];
+if (flag)
+{
+tmp++;
+flag = false;
+}
+
+if (tmp >= 10)
+{
+tmp -= 10;
+flag = true;
+}
+res.number.insert(tmp);
+}
+if (flag)
+res.number.insert(char(1));
+res.number.Invert();
+return res;
+}
+
+HugeNumber HugeNumber::operator*(char c)
+{
+HugeNumber res;
+if (c == 0)
+{
+res.number.insert(0);
+}
+else if (c == 10)
+{
+res.number = number;
+res.number.insert(0);
+}
+else if (c == 1)
+{
+res.number = number;
+}
+else
+{
+for (int i = 0; i < c; i++)
+res += *this;
+}
+return res;
+
+}
+
+HugeNumber HugeNumber::operator*(HugeNumber& other)
+{
+HugeNumber l, r;
+HugeNumber res;
+if (number.Size() <= other.number.Size())
+{
+l.number = number;
+r.number = other.number;
+}
+else
+{
+l.number = other.number;
+r.number = number;
+}
+for (int i = 1; i <= l.number.Size(); i++)
+{
+HugeNumber tmp;
+tmp = r * (l.number[l.number.Size() - i]);
+for (int j = 1; j < i; j++)
+tmp *= 10;
+res += tmp;
+}
+
+return res;
+}
+
+
+HugeNumber::HugeNumber(int a)
+{
+number.FromInt(a);
+}
+
+bool HugeNumber::operator>(HugeNumber& other)
+{
+if (number.Size() > other.number.Size())
+return true;
+else if (number.Size() < other.number.Size())
+return false;
+else
+{
+if (*this == other)
+return false;
+
+for (size_t i = 0; i < number.Size(); i++)
+{
+if (number[i] > other.number[i])
+return true;
+if (number[i] < other.number[i])
+return false;
+}
+}
+}
+
+bool HugeNumber::operator==(HugeNumber& other)
+{
+if (number.Size() == other.number.Size())
+{
+for (size_t i = 0; i < number.Size(); i++)
+{
+if (number[i] != other.number[i])
+return false;
+}
+return true;
+}
+else
+return false;
+}
+
+ 
+
+#include <iostream>
+#include "HugeNumber.h"
+using namespace std;
+
+void Calculate(HugeNumber N)
+{
+HugeNumber Sum(0), NF(1);
+HugeNumber ONE(1);
+for (HugeNumber i(1); i <= N; i++)
+{
+NF *= i;
+Sum += NF;
+}
+cout << "Answer is: ";
+Sum.Print();
+Sum.Save();
+}
+
+int main()
+{
+bool flag = true;
+
+while (flag)
+{
+cout << "1 - generate random" << endl
+<< "2 - read from file" << endl
+<< "q - exit" << endl;
+char x;
+cin >> x;
+HugeNumber N;
+switch (x)
+{
+case '2':
+N.ReadFromFile();
+break;
+case 'q':
+flag = false;
+break;
+case '1':
+default:
+N.Generate(2); //генерируем двузначное число
+break;
+}
+
+if (flag)
+Calculate(N);
+}
+return 0;
+}
+ 
